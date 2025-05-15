@@ -1,0 +1,102 @@
+{
+    "ComputeServers": {
+        "My_GitHub_Account": {
+            "FaaSType": "GitHubActions",
+            "UserName": "Ashish-Ramrakhiani",
+            "ActionRepoName": "FaaSr-tutorial-actions",
+            "Branch": "main",
+            "Token": "My_GitHub_Account_TOKEN"
+        },
+        "My_VM_Account": {
+            "FaaSType": "VM",
+            "InstanceId": "i-07c8cf435c9573bc9",
+            "Region": "us-east-1",
+            "AccessKey": "My_VM_Account_ACCESS_KEY",
+            "SecretKey": "My_VM_Account_SECRET_KEY"
+        }
+    },
+    "DataStores": {
+        "My_Minio_Bucket": {
+            "Endpoint": "https://play.min.io",
+            "Bucket": "faasr",
+            "Region": "us-east-1",
+            "Writable": "TRUE",
+            "AccessKey": "My_Minio_Bucket_ACCESS_KEY",
+            "SecretKey": "My_Minio_Bucket_SECRET_KEY"
+        }
+    },
+    "FunctionList": {
+        "start": {
+            "FunctionName": "create_sample_data",
+            "FaaSServer": "My_GitHub_Account",
+            "Arguments": {
+                "folder": "tutorial",
+                "output1": "sample1.csv",
+                "output2": "sample2.csv"
+            },
+            "InvokeNext": "sum",
+            "ResourceIntensive": true
+        },
+        "sum": {
+            "FunctionName": "compute_sum",
+            "FaaSServer": "My_GitHub_Account",
+            "Arguments": {
+                "folder": "tutorial",
+                "input1": "sample1.csv",
+                "input2": "sample2.csv",
+                "output": "sum.csv"
+            },
+            "InvokeNext": "Terminate_VM",
+            "ResourceIntensive": true
+        },
+        "Deploy_VM": {
+            "FunctionName": "deploy_vm_faas",
+            "FaaSServer": "My_GitHub_Account",
+            "Arguments": {
+                "resource_intensive_functions": [
+                    "start",
+                    "sum"
+                ]
+            },
+            "InvokeNext": "start"
+        },
+        "Terminate_VM": {
+            "FunctionName": "terminate_vm_faas",
+            "FaaSServer": "My_GitHub_Account",
+            "Arguments": [
+
+            ]
+        }
+    },
+    "ActionContainers": {
+        "start": "ghcr.io/ashish-ramrakhiani/github-actions-tidyverse:vm-support",
+        "sum": "ghcr.io/ashish-ramrakhiani/github-actions-tidyverse:vm-support",
+        "Deploy_VM": "ghcr.io/ashish-ramrakhiani/github-actions-tidyverse:vm-support",
+        "Terminate_VM": "ghcr.io/ashish-ramrakhiani/github-actions-tidyverse:vm-support"
+    },
+    "FunctionGitRepo": {
+        "create_sample_data": "Ashish-Ramrakhiani/FaaSr_test_VM",
+        "compute_sum": "Ashish-Ramrakhiani/FaaSr_test_VM",
+        "deploy_vm_faas": "Ashish-Ramrakhiani/FaaSr_test_VM",
+        "terminate_vm_faas": "Ashish-Ramrakhiani/FaaSr_test_VM"
+    },
+    "FunctionCRANPackage": {
+        "deploy_vm_faas": [
+            "paws.compute",
+            "httr",
+            "jsonlite",
+            "base64enc"
+        ],
+        "terminate_vm_faas": [
+            "paws.compute",
+            "httr",
+            "jsonlite"
+        ]
+    },
+    "FunctionInvoke": "Deploy_VM",
+    "InvocationID": "",
+    "FaaSrLog": "FaaSrLog",
+    "LoggingDataStore": "My_Minio_Bucket",
+    "DefaultDataStore": "My_Minio_Bucket"
+}
+
